@@ -3,80 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>圖書館管理系統 </title>
+    <title>圖書館系統</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <nav class="navbar">
+        <div class="nav-brand">📚 圖書館系統</div>
+        <button class="btn btn-outline" onclick="showSection('admin-login')">管理入口</button>
+    </nav>
 
-<nav class="navbar">
-    <div class="nav-brand">📚 圖書館智慧系統 (S001-S040)</div>
-    <button class="btn-outline" onclick="showSection('admin-login')">管理入口</button>
-</nav>
-
-<div class="container">
-    <section id="student-entry" class="section active">
-        <div class="card login-box">
-            <h2 id="login-header">學生借閱登入</h2>
-            <input type="text" id="stu-id-field" placeholder="請輸入學號 (例: S001)">
-            <div id="pw-field-container"></div>
-            <button class="btn btn-primary" style="margin-top:10px" onclick="handleStudentAuth()">確認登入</button>
-        </div>
-    </section>
-
-    <section id="library-hall" class="section">
-        <div class="card">
-            <div class="header-row">
-                <h2 id="hello-user">歡迎選書</h2>
-                <button class="btn btn-danger" onclick="location.reload()">安全登出</button>
+    <div class="container">
+        <section id="student-entry" class="section active">
+            <div class="card login-box">
+                <h2>學生登入</h2>
+                <p style="color: #666; margin-bottom: 20px;">請輸入您的學號以開始使用服務</p>
+                <input type="text" id="stu-id-field" placeholder="輸入學號 (例: S001)">
+                <div id="pw-field-container"></div>
+                <button class="btn btn-primary btn-lg" onclick="handleStudentAuth()">進入書庫系統</button>
             </div>
-            <div class="filter-bar" id="cat-btns"></div>
-            <div class="book-grid" id="book-shelf"></div>
-        </div>
-    </section>
+        </section>
 
-    <section id="admin-login" class="section">
-        <div class="card login-box">
-            <h2>🔐 管理員認證</h2>
-            <input type="text" id="adm-user" placeholder="管理員帳號">
-            <input type="password" id="adm-pass" placeholder="管理密碼">
-            <div id="login-error-msg" class="security-alert">嘗試次數過多，請等候 30 秒。</div>
-            <button class="btn btn-primary" id="adm-login-btn" onclick="adminAuth()">進入後台</button>
-            <p><a href="#" onclick="showSection('student-entry')">返回學生入口</a></p>
-        </div>
-    </section>
-
-    <section id="admin-backstage" class="section">
-        <div class="card">
-            <h2>圖書館管理後台</h2>
-            <div class="admin-grid">
-                <div class="admin-tool">
-                    <h3>➕ 上架新書</h3>
-                    <input type="text" id="add-title" placeholder="輸入書名">
-                    <select id="add-cat">
-                        <option value="文學">文學</option><option value="數學">數學</option>
-                        <option value="英文">英文</option><option value="社會">社會</option>
-                        <option value="自然">自然</option><option value="藝術">藝術</option>
-                        <option value="小說">小說</option><option value="漫畫">漫畫</option>
-                    </select>
-                    <button class="btn btn-primary btn-success" onclick="manualAddBook()">確認上架</button>
+        <section id="library-hall" class="section">
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h2 id="hello-user">你好</h2>
+                    <button class="btn btn-danger" style="width:auto;" onclick="location.reload()">安全登出</button>
                 </div>
-                <div class="admin-tool">
-                    <h3>👤 帳戶維護 (S001-S040)</h3>
-                    <div id="student-admin-list" class="scroll-list"></div>
+
+                <div class="my-loans-container">
+                    <h3>📖 我的借閱清單</h3>
+                    <div id="my-loans-list" class="my-loans-grid">
+                        <p class="note">目前沒有借閱紀錄。</p>
+                    </div>
+                </div>
+
+                <hr>
+                <h3>🌟 館藏大廳</h3>
+                <div id="cat-btns" class="filter-bar"></div>
+                <div id="book-shelf" class="book-grid"></div>
+            </div>
+        </section>
+
+        <section id="admin-login" class="section">
+            <div class="card login-box">
+                <h2>管理員驗證</h2>
+                <input type="text" id="adm-user" placeholder="管理帳號">
+                <input type="password" id="adm-pass" placeholder="管理密碼">
+                <button class="btn btn-primary" onclick="adminAuth()">驗證身份</button>
+            </div>
+        </section>
+
+        <section id="admin-backstage" class="section">
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h2 style="margin:0;">⚙️ 系統管理中心</h2>
+                    <button class="btn btn-danger" style="width:auto;" onclick="adminLogout()">管理員登出</button>
+                </div>
+
+                <div class="admin-grid">
+                    <div class="admin-sub-card">
+                        <h3>新書上架</h3>
+                        <input type="text" id="add-title" placeholder="請輸入書名">
+                        <select id="add-cat"></select>
+                        <button class="btn btn-primary" onclick="manualAddBook()">確認上架</button>
+                    </div>
+                    <div class="admin-sub-card">
+                        <h3>學生帳號狀態</h3>
+                        <div id="student-admin-list" class="scroll-list"></div>
+                    </div>
+                </div>
+
+                <div style="margin-top:30px;">
+                    <h3>全館借閱帳本</h3>
+                    <table>
+                        <thead>
+                            <tr><th>學號</th><th>書籍名稱</th><th>借閱日期</th><th>管理操作</th></tr>
+                        </thead>
+                        <tbody id="admin-loan-table"></tbody>
+                    </table>
                 </div>
             </div>
-            <h3 class="table-title">📋 當前借閱記錄清單</h3>
-            <table class="admin-table">
-                <thead>
-                    <tr><th>學號</th><th>書籍名稱</th><th>借閱日期</th><th>操作</th></tr>
-                </thead>
-                <tbody id="admin-loan-table"></tbody>
-            </table>
-            <button class="btn btn-primary btn-secondary" onclick="location.reload()">關閉系統</button>
-        </div>
-    </section>
-</div>
+        </section>
+    </div>
 
-<script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>

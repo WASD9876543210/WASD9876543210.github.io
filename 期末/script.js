@@ -1,152 +1,167 @@
-// --- 初始化 40 人白名單 ---
 const WHITELIST = Array.from({length: 40}, (_, i) => `S${String(i + 1).padStart(3, '0')}`);
 const ADM_ACC = { u: "admin", p: "1234" };
 const CATS = ["文學", "數學", "英文", "社會", "自然", "藝術", "小說", "漫畫"];
 
-// 安全過濾防止駭客腳本
 function escapeHTML(str) {
     return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
 }
 
-// 自動生成 80 本預設書籍
+// 初始化書籍資料
 let initialBooks = [];
 CATS.forEach(c => {
-    for(let i=1; i<=10; i++) {
-        initialBooks.push({ title: `${c}系列-第${i}冊`, cat: c, isBorrowed: false });
-    }
+    for(let i=1; i<=10; i++) initialBooks.push({ title: `${c}系列-第${i}冊`, cat: c, isBorrowed: false });
 });
 
-// 資料讀取
 let books = JSON.parse(localStorage.getItem('lib_final_books')) || initialBooks;
 let loans = JSON.parse(localStorage.getItem('lib_final_loans')) || [];
 let students = JSON.parse(localStorage.getItem('lib_final_students')) || {}; 
-
-let loginAttempts = 0;
-let isLocked = false;
 let activeStudent = null;
 
-// --- 學生登入邏輯 ---
-const idInput = document.getElementById('stu-id-field');
-const pwContainer = document.getElementById('pw-field-container');
+// 當頁面載入完成後執行
+document.addEventListener('DOMContentLoaded', () => {
+    const idInput = document.getElementById('stu-id-field');
+    const pwContainer = document.getElementById('pw-field-container');
 
-idInput?.addEventListener('input', () => {
-    const sid = escapeHTML(idInput.value.trim().toUpperCase());
-    if(WHITELIST.includes(sid)) {
-        pwContainer.innerHTML = students[sid] 
-            ? `<input type="password" id="stu-pw-field" placeholder="請輸入密碼">`
-            : `<p style="color:var(--success); font-size:0.8rem;">首次登入，請設定密碼：</p>
-               <input type="password" id="stu-pw-field" placeholder="設定 4 位數以上密碼">`;
-    } else { pwContainer.innerHTML = ""; }
+    // 監聽學號輸入：顯示初次登入提示或密碼框
+    idInput?.addEventListener('input', () => {
+        const sid = idInput.value.trim().toUpperCase();
+        if(WHITELIST.includes(sid)) {
+            if (!students[sid]) {
+                pwContainer.innerHTML = `
+                    <div class="first-login-tip">💡 偵測到您是初次登入，請設定一組密碼。</div>
+                    <input type="password" id="stu-pw-field" placeholder="請設定您的新密碼">`;
+            } else {
+                pwContainer.innerHTML = `<input type="password" id="stu-pw-field" placeholder="請輸入密碼">`;
+            }
+        } else {
+            pwContainer.innerHTML = "";
+        }
+    });
+
+    const addCatSelect = document.getElementById('add-cat');
+    if(addCatSelect) addCatSelect.innerHTML = CATS.map(c => `<option value="${c}">${c}</option>`).join('');
 });
 
+// 學生登入
 function handleStudentAuth() {
-    const sid = escapeHTML(idInput.value.trim().toUpperCase());
-    const pw = document.getElementById('stu-pw-field')?.value;
-    if(!WHITELIST.includes(sid)) return alert("安全性警告：學號無權限。");
-    if(!pw || pw.length < 4) return alert("密碼長度不足。");
+    const sid = document.getElementById('stu-id-field').value.trim().toUpperCase();
+    const pwField = document.getElementById('stu-pw-field');
+    const pw = pwField ? pwField.value : "";
 
+    if(!WHITELIST.includes(sid)) return alert("此學號不在系統白名單內。");
     if(!students[sid]) {
         students[sid] = pw;
         save();
-        alert("密碼設定成功！");
+        alert("設定成功！這是您第一次登入。");
     } else if(students[sid] !== pw) {
-        return alert("認證失敗：密碼錯誤。");
+        return alert("密碼錯誤，請再試一次。");
     }
     activeStudent = sid;
     showSection('library-hall');
 }
 
-// --- 介面控制 ---
 function showSection(id) {
-    if(id === 'admin-backstage' && !sessionStorage.getItem('isAdm')) return showSection('admin-login');
+    // 管理後台權限檢查
+    if (id === 'admin-backstage' && sessionStorage.getItem('isAdm') !== 'true') {
+        alert("請先完成管理員驗證。");
+        return showSection('admin-login');
+    }
+
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
+    
     if(id === 'library-hall') renderShelf();
     if(id === 'admin-backstage') renderAdmin();
 }
 
+// 渲染書庫與個人清單
 function renderShelf(filterCat = '全部') {
     const shelf = document.getElementById('book-shelf');
     const filterArea = document.getElementById('cat-btns');
+    const myLoansList = document.getElementById('my-loans-list');
+    
     shelf.innerHTML = "";
-    filterArea.innerHTML = ['全部', ...CATS].map(c => `<button class="filter-btn ${filterCat===c?'active':''}" onclick="renderShelf('${c}')">${c}</button>`).join('');
+    filterArea.innerHTML = ['全部', ...CATS].map(c => 
+        `<button class="filter-btn ${filterCat===c?'active':''}" onclick="renderShelf('${c}')">${c}</button>`
+    ).join('');
 
     books.filter(b => !b.isBorrowed).forEach(book => {
         if(filterCat === '全部' || book.cat === filterCat) {
             shelf.innerHTML += `<div class="book-card">
-                <span class="badge">${book.cat}</span>
+                <span style="font-size:0.7rem; color:var(--primary); font-weight:bold;">${book.cat}</span>
                 <h4>${escapeHTML(book.title)}</h4>
                 <button class="btn btn-primary" onclick="doBorrow('${escapeHTML(book.title)}')">確認借閱</button>
             </div>`;
         }
     });
+
+    const myCurrent = loans.filter(l => l.sid === activeStudent);
+    myLoansList.innerHTML = myCurrent.length 
+        ? myCurrent.map(l => `<div class="loan-item"><strong>${escapeHTML(l.book)}</strong><br><small>📅 ${l.date}</small></div>`).join('') 
+        : '<p class="note">您目前沒有借閱中的書籍。</p>';
+
     document.getElementById('hello-user').innerText = `你好，${activeStudent}`;
 }
 
 function doBorrow(title) {
     const bIdx = books.findIndex(b => b.title === title);
-    books[bIdx].isBorrowed = true;
-    loans.push({ sid: activeStudent, book: title, date: new Date().toLocaleDateString() });
-    save();
-    renderShelf();
+    if(bIdx !== -1) {
+        books[bIdx].isBorrowed = true;
+        loans.push({ sid: activeStudent, book: title, date: new Date().toLocaleDateString() });
+        save();
+        renderShelf();
+    }
 }
 
-// --- 管理員權限與安全 ---
+// 管理員功能
 function adminAuth() {
-    if(isLocked) return;
     const u = document.getElementById('adm-user').value;
     const p = document.getElementById('adm-pass').value;
     if(u === ADM_ACC.u && p === ADM_ACC.p) {
         sessionStorage.setItem('isAdm', 'true');
         showSection('admin-backstage');
     } else {
-        loginAttempts++;
-        if(loginAttempts >= 3) {
-            isLocked = true;
-            document.getElementById('login-error-msg').style.display = "block";
-            document.getElementById('adm-login-btn').disabled = true;
-            setTimeout(() => { 
-                isLocked = false; 
-                loginAttempts = 0; 
-                document.getElementById('login-error-msg').style.display = "none";
-                document.getElementById('adm-login-btn').disabled = false;
-            }, 30000);
-        }
-        alert(`驗證失敗！剩餘次數：${3 - loginAttempts}`);
+        alert("管理員密碼錯誤！");
+    }
+}
+
+function adminLogout() {
+    if(confirm("確定要退出管理模式嗎？")) {
+        sessionStorage.removeItem('isAdm');
+        showSection('student-entry');
     }
 }
 
 function renderAdmin() {
     document.getElementById('admin-loan-table').innerHTML = loans.map((l, i) => `
         <tr><td>${l.sid}</td><td>${escapeHTML(l.book)}</td><td>${l.date}</td>
-        <td><button onclick="doReturn('${escapeHTML(l.book)}', ${i})" style="color:var(--success); font-weight:bold; border:none; background:none; cursor:pointer;">確認歸還</button></td></tr>`).join('');
+        <td><button class="btn btn-danger" style="padding:5px 10px;" onclick="doReturn(${i})">歸還</button></td></tr>`).join('');
 
     document.getElementById('student-admin-list').innerHTML = WHITELIST.map(sid => `
-        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px; border-bottom:1px solid #eee;">
-            <span><strong>${sid}</strong> <small style="color:${students[sid]?'#27ae60':'#ccc'}">${students[sid]?'已啟動':'未啟用'}</small></span>
-            ${students[sid] ? `<button class="btn-warning btn" onclick="resetPassword('${sid}')">重設</button>` : ''}
+        <div style="display:flex; justify-content:space-between; padding:5px; border-bottom:1px solid #eee;">
+            <span>${sid} ${students[sid]?'✅':'❌'}</span>
+            ${students[sid] ? `<button onclick="resetPw('${sid}')">重設</button>` : ''}
         </div>`).join('');
 }
 
-function resetPassword(sid) {
-    if(confirm(`警告：確定要清除學號 ${sid} 的密碼授權嗎？`)) { delete students[sid]; save(); renderAdmin(); }
-}
-
-function doReturn(title, idx) {
+function doReturn(idx) {
+    const title = loans[idx].book;
     const bIdx = books.findIndex(b => b.title === title);
     if(bIdx !== -1) books[bIdx].isBorrowed = false;
     loans.splice(idx, 1);
-    save();
-    renderAdmin();
+    save(); renderAdmin();
+}
+
+function resetPw(sid) {
+    if(confirm(`確定重設 ${sid} 的密碼？`)) { delete students[sid]; save(); renderAdmin(); }
 }
 
 function manualAddBook() {
-    const t = escapeHTML(document.getElementById('add-title').value);
+    const t = document.getElementById('add-title').value;
     const c = document.getElementById('add-cat').value;
     if(!t) return;
     books.push({ title: t, cat: c, isBorrowed: false });
-    save();
-    renderAdmin();
+    save(); renderAdmin();
     document.getElementById('add-title').value = "";
 }
 

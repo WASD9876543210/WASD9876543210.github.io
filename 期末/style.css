@@ -1,161 +1,83 @@
-/* 全域設定 */
 :root {
-    --primary: #2c3e50;
-    --accent: #3498db;
-    --bg: #f4f7f6;
-    --success: #27ae60;
-    --danger: #e74c3c;
+    --primary: #4e54c8;
+    --success: #2ecc71;
     --warning: #f39c12;
+    --danger: #e74c3c;
+    --bg-light: #f4f7f6;
 }
 
 body {
-    font-family: "Microsoft JhengHei", sans-serif;
-    margin: 0;
-    background: var(--bg);
-    color: #333;
+    font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+    margin: 0; min-height: 100vh;
+    background-color: var(--bg-light);
+    display: flex; flex-direction: column; align-items: center;
 }
 
-/* 導覽列 */
 .navbar {
-    background: var(--primary);
-    color: white;
-    padding: 15px 30px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.nav-brand {
-    font-size: 1.4rem;
-    font-weight: bold;
-}
-
-/* 容器與卡片 */
-.container {
-    max-width: 1200px;
-    margin: 25px auto;
-    padding: 0 20px;
-}
-
-.card {
-    background: white;
-    padding: 30px;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-    margin-bottom: 20px;
-}
-
-.section { display: none; }
-.active { display: block; }
-
-.header-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-}
-
-/* 登入區 */
-.login-box {
-    max-width: 420px;
-    margin: 60px auto;
-    text-align: center;
-}
-
-input, select {
-    width: 100%;
-    padding: 12px;
-    margin: 10px 0;
-    border: 1px solid #ddd;
-    border-radius: 8px;
+    width: 100%; background: #2c3e50; color: white;
+    padding: 15px 30px; display: flex; justify-content: space-between; align-items: center;
     box-sizing: border-box;
 }
 
-/* 書籍格狀佈局 */
-.filter-bar {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 25px;
-    flex-wrap: wrap;
-    justify-content: center;
+.container { width: 100%; max-width: 1000px; padding: 20px; flex: 1; }
+.section { display: none; }
+.active { display: block; }
+
+.card {
+    background: white; padding: 30px; border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 20px;
 }
 
-.filter-btn {
-    padding: 8px 16px;
-    border: 2px solid #eee;
-    border-radius: 30px;
-    cursor: pointer;
-    background: white;
-    font-weight: bold;
-}
+/* 寬敞登入框 */
+.login-box { max-width: 480px; margin: 60px auto; text-align: center; }
 
-.filter-btn.active {
-    background: var(--accent);
-    color: white;
-    border-color: var(--accent);
-}
-
-.book-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 20px;
-}
-
-.book-card {
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    border: 1px solid #eee;
-    text-align: center;
-}
-
-/* 管理員後台佈局 */
-.admin-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 40px;
-}
-
-.scroll-list {
-    max-height: 250px;
-    overflow-y: auto;
-    border: 1px solid #eee;
-    border-radius: 8px;
-    padding: 5px;
-}
-
-/* 按鈕樣式 */
-.btn {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.btn-primary { background: var(--accent); color: white; width: 100%; }
-.btn-danger { background: var(--danger); color: white; }
-.btn-success { background: var(--success); }
-.btn-warning { background: var(--warning); color: white; padding: 4px 8px; font-size: 0.75rem; }
-.btn-secondary { background: #95a5a6; margin-top: 30px; }
-.btn-outline { background: none; border: 1px solid white; color: white; padding: 6px 15px; }
-
-/* 表格樣式 */
-.admin-table {
+input[type="text"], input[type="password"], select {
     width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
+    padding: 18px 25px; /* 寬敞感 */
+    margin: 12px 0;
+    font-size: 1.1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    box-sizing: border-box;
+    transition: 0.3s;
 }
 
-.admin-table th, .admin-table td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid #f0f0f0;
+input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 8px rgba(78,84,200,0.2); }
+
+/* 初次登入提示 */
+.first-login-tip {
+    background-color: #fff4e6;
+    color: #d9480f;
+    padding: 15px;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    margin: 10px 0;
+    border: 1px solid #ffe8cc;
 }
 
-.security-alert {
-    color: var(--danger);
-    font-size: 0.8rem;
-    margin-top: 5px;
-    display: none;
-}
+.btn { padding: 12px 24px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+.btn-primary { background: var(--primary); color: white; width: 100%; }
+.btn-lg { padding: 18px; font-size: 1.1rem; margin-top: 10px; }
+.btn-danger { background: var(--danger); color: white; }
+.btn-outline { background: transparent; border: 1px solid white; color: white; }
+
+/* 借閱列表與書櫃 */
+.my-loans-container { border-left: 6px solid var(--success); padding: 15px; background: #f9fffb; margin: 20px 0; border-radius: 8px; }
+.my-loans-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
+.loan-item { background: white; padding: 12px; border: 1px solid #eee; border-radius: 8px; text-align: center; font-size: 0.9rem; }
+
+.book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+.book-card { background: white; padding: 20px; border-radius: 12px; border: 1px solid #eee; text-align: center; }
+
+.filter-bar { margin: 20px 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.filter-btn { padding: 8px 18px; border-radius: 20px; border: 1px solid #ddd; background: white; cursor: pointer; }
+.filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+/* 管理表格 */
+table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+
+.admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.admin-sub-card { padding: 15px; border: 1px solid #eee; border-radius: 10px; }
+.scroll-list { max-height: 250px; overflow-y: auto; }
